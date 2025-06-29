@@ -23,6 +23,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useParsedDataStore } from "@/store/parsedDataStore";
+import { exportEntitiesToExcel } from "@/lib/exportToExcel";
 import { 
   Upload, 
   Search, 
@@ -36,7 +37,7 @@ import {
   ArrowRight,
   Sparkles,
   Database,
-  Filter
+  Download
 } from "lucide-react";
 
 export default function UploadPage() {
@@ -52,6 +53,7 @@ export default function UploadPage() {
   const [searchInput, setSearchInput] = useState("");
   const [searchEntity, setSearchEntity] = useState<"clients" | "workers" | "tasks">("tasks");
   const [isFiltering, setIsFiltering] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Called after file upload
   const handleAllSheetsParsed = (data: typeof parsedData) => {
@@ -120,6 +122,22 @@ export default function UploadPage() {
     setParsedData(originalData);
     setSearchInput("");
     validateAllEntities(originalData);
+  };
+
+  const handleExportCleanData = async () => {
+    setIsExporting(true);
+    try {
+      exportEntitiesToExcel(parsedData);
+      // Show success message
+      setTimeout(() => {
+        alert("✅ Clean data exported successfully!");
+      }, 500);
+    } catch (error) {
+      console.error("Export error:", error);
+      alert("❌ Failed to export data. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const hasData = parsedData.clients.length > 0 || parsedData.workers.length > 0 || parsedData.tasks.length > 0;
@@ -398,11 +416,21 @@ export default function UploadPage() {
               <Button
                 variant="outline"
                 size="lg"
-                disabled={hasErrors}
+                onClick={handleExportCleanData}
+                disabled={isExporting}
                 className="px-6"
               >
-                <Filter className="h-4 w-4 mr-2" />
-                Export Clean Data
+                {isExporting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export Clean Data
+                  </>
+                )}
               </Button>
               <Button
                 asChild

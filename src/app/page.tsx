@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import FileUploader from "@/components/FileUpload/FileUploader";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import Link from "next/link"; // ✅ Import Link
+import Link from "next/link";
 
 export default function UploadPage() {
   const [parsedData, setParsedData] = useState<{
@@ -40,12 +40,14 @@ export default function UploadPage() {
   const [searchEntity, setSearchEntity] = useState<"clients" | "workers" | "tasks">("tasks");
   const [isFiltering, setIsFiltering] = useState(false);
 
+  // Called after file upload
   const handleAllSheetsParsed = (data: typeof parsedData) => {
     setParsedData(data);
     setOriginalData(data);
     validateAllEntities(data);
   };
 
+  // Called on inline edits or search filter update
   const updateEntity = (type: keyof typeof parsedData, updated: any[]) => {
     const newParsed = { ...parsedData, [type]: updated };
     setParsedData(newParsed);
@@ -55,6 +57,7 @@ export default function UploadPage() {
   const getErrorsFor = (entity: keyof typeof parsedData) =>
     validationErrors.filter((e) => e.entity === entity);
 
+  // Main validator
   const validateAllEntities = (data: typeof parsedData) => {
     const allTaskIDs = new Set(data.tasks.map((t) => t.TaskID));
     const allWorkerSkills = new Set(
@@ -72,6 +75,7 @@ export default function UploadPage() {
     setValidationErrors([...clientErrors, ...taskErrors, ...workerErrors]);
   };
 
+  // Natural Language Filter
   const handleNaturalSearch = async () => {
     if (!searchInput.trim()) return;
     setIsFiltering(true);
@@ -108,7 +112,7 @@ export default function UploadPage() {
         </p>
       </div>
 
-      {/* Upload */}
+      {/* File Upload */}
       <Card className="shadow-md mb-6">
         <CardContent className="p-4">
           <h2 className="text-lg font-medium mb-2">Upload File</h2>
@@ -116,7 +120,7 @@ export default function UploadPage() {
         </CardContent>
       </Card>
 
-      {/* Search */}
+      {/* Search Bar */}
       <div className="flex flex-col md:flex-row items-start md:items-center gap-3 mb-6">
         <Input
           value={searchInput}
@@ -153,6 +157,7 @@ export default function UploadPage() {
 
       <Separator className="my-8" />
 
+      {/* Validation Errors Summary */}
       {!!validationErrors.length && (
         <div className="bg-red-100 border border-red-300 p-4 rounded-md my-6">
           <h3 className="text-lg font-semibold text-red-700 mb-2">
@@ -169,7 +174,7 @@ export default function UploadPage() {
         </div>
       )}
 
-      {/* Grids */}
+      {/* Entity Tables */}
       {(["clients", "workers", "tasks"] as const).map((entity) => (
         !!parsedData[entity].length && (
           <div className="mb-10" key={entity}>
@@ -190,7 +195,7 @@ export default function UploadPage() {
 
       <Separator className="my-8" />
 
-      {/* CTA */}
+      {/* Final CTA Buttons */}
       <div className="flex justify-between items-center">
         <Button
           variant="default"

@@ -246,7 +246,7 @@ export default function UploadPage() {
                 AI-Powered Search & Filter
               </CardTitle>
               <p className="text-muted-foreground">
-                Use natural language to filter your data - try "tasks with duration > 2" or "workers with Python skills"
+                Use natural language to filter your data - try "tasks with duration greater than 2" or "workers with Python skills"
               </p>
             </CardHeader>
             <CardContent>

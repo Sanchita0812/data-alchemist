@@ -51,7 +51,7 @@
 | Area              | Tech Used                            |
 |-------------------|--------------------------------------|
 | Framework         | Next.js 14 (App Router, TypeScript)  |
-| UI Library        | Tailwind CSS, Radix UI               |
+| UI Library        | Tailwind CSS, ShadCn UI               |
 | Forms & Grids     | Custom Editable Components           |
 | LLM Integration   | Groq API (`llama3`, `mixtral`)       |
 | Excel Parsing     | `xlsx` JavaScript library            |

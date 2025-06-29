@@ -1,87 +1,220 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Rule } from "@/types/rule";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Pencil, Trash2, Check, X } from "lucide-react";
 
 interface RuleCardProps {
   rule: Rule;
   onDelete: () => void;
-  onUpdate: (updated: Rule) => void; 
+  onUpdate: (updated: Rule) => void;
 }
 
 const RuleCard: React.FC<RuleCardProps> = ({ rule, onDelete, onUpdate }) => {
-  const handleChange = (field: string, value: any) => {
-    const updated = { ...rule, [field]: value };
-    onUpdate(updated);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedRule, setEditedRule] = useState<Rule>(rule);
+
+  const handleSave = () => {
+    onUpdate(editedRule);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditedRule(rule);
+    setIsEditing(false);
+  };
+
+  const getRuleTypeColor = (type: string) => {
+    switch (type) {
+      case "coRun": return "bg-blue-500";
+      case "slotRestriction": return "bg-green-500";
+      case "loadLimit": return "bg-orange-500";
+      default: return "bg-gray-500";
+    }
+  };
+
+  const getRuleTypeLabel = (type: string) => {
+    switch (type) {
+      case "coRun": return "Co-Run";
+      case "slotRestriction": return "Slot Restriction";
+      case "loadLimit": return "Load Limit";
+      default: return type;
+    }
   };
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="capitalize">{rule.type} Rule</CardTitle>
-        <Button variant="destructive" size="sm" onClick={onDelete}>
-          Delete
-        </Button>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <div className="flex items-center gap-2">
+          <Badge className={`text-white ${getRuleTypeColor(rule.type)}`}>
+            {getRuleTypeLabel(rule.type)}
+          </Badge>
+          <CardTitle className="text-lg">{getRuleTypeLabel(rule.type)} Rule</CardTitle>
+        </div>
+        <div className="flex items-center gap-2">
+          {!isEditing ? (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsEditing(true)}
+                className="h-8 w-8 p-0"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onDelete}
+                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSave}
+                className="h-8 w-8 p-0 text-green-600 hover:text-green-600"
+              >
+                <Check className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCancel}
+                className="h-8 w-8 p-0 text-red-600 hover:text-red-600"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </>
+          )}
+        </div>
       </CardHeader>
 
-      <CardContent className="text-sm space-y-2">
+      <CardContent className="space-y-3">
         {rule.type === "coRun" && (
-          <div>
-            <label className="block font-medium mb-1">Task IDs (comma-separated)</label>
-            <Input
-              value={rule.tasks.join(", ")}
-              onChange={(e) =>
-                handleChange(
-                  "tasks",
-                  e.target.value.split(",").map((id) => id.trim()).filter(Boolean)
-                )
-              }
-              placeholder="e.g. T1, T2, T3"
-            />
+          <div className="space-y-2">
+            <Label>Task IDs</Label>
+            {isEditing ? (
+              <Input
+                value={editedRule.tasks.join(", ")}
+                onChange={(e) =>
+                  setEditedRule({
+                    ...editedRule,
+                    tasks: e.target.value.split(",").map((id) => id.trim()).filter(Boolean)
+                  })
+                }
+                placeholder="e.g. T1, T2, T3"
+              />
+            ) : (
+              <div className="flex flex-wrap gap-1">
+                {rule.tasks.map((taskId) => (
+                  <Badge key={taskId} variant="outline">
+                    {taskId}
+                  </Badge>
+                ))}
+              </div>
+            )}
+            {!isEditing && (
+              <p className="text-sm text-muted-foreground">
+                These tasks must run together in the same phase
+              </p>
+            )}
           </div>
         )}
 
         {rule.type === "slotRestriction" && (
-          <>
-            <div>
-              <label className="block font-medium mb-1">Group Tag</label>
-              <Input
-                value={rule.groupTag}
-                onChange={(e) => handleChange("groupTag", e.target.value)}
-              />
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label>Group Tag</Label>
+              {isEditing ? (
+                <Input
+                  value={editedRule.groupTag}
+                  onChange={(e) =>
+                    setEditedRule({ ...editedRule, groupTag: e.target.value })
+                  }
+                />
+              ) : (
+                <Badge variant="outline" className="w-fit">
+                  {rule.groupTag}
+                </Badge>
+              )}
             </div>
-            <div>
-              <label className="block font-medium mb-1">Min Common Slots</label>
-              <Input
-                type="number"
-                value={rule.minCommonSlots}
-                onChange={(e) => handleChange("minCommonSlots", Number(e.target.value))}
-              />
+            <div className="space-y-2">
+              <Label>Minimum Common Slots</Label>
+              {isEditing ? (
+                <Input
+                  type="number"
+                  min={1}
+                  value={editedRule.minCommonSlots}
+                  onChange={(e) =>
+                    setEditedRule({ ...editedRule, minCommonSlots: Number(e.target.value) })
+                  }
+                />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">{rule.minCommonSlots}</Badge>
+                  <span className="text-sm text-muted-foreground">slots required</span>
+                </div>
+              )}
             </div>
-          </>
+            {!isEditing && (
+              <p className="text-sm text-muted-foreground">
+                All clients in "{rule.groupTag}" must share at least {rule.minCommonSlots} common time slots
+              </p>
+            )}
+          </div>
         )}
 
         {rule.type === "loadLimit" && (
-          <>
-            <div>
-              <label className="block font-medium mb-1">Worker Group</label>
-              <Input
-                value={rule.workerGroup}
-                onChange={(e) => handleChange("workerGroup", e.target.value)}
-              />
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label>Worker Group</Label>
+              {isEditing ? (
+                <Input
+                  value={editedRule.workerGroup}
+                  onChange={(e) =>
+                    setEditedRule({ ...editedRule, workerGroup: e.target.value })
+                  }
+                />
+              ) : (
+                <Badge variant="outline" className="w-fit">
+                  {rule.workerGroup}
+                </Badge>
+              )}
             </div>
-            <div>
-              <label className="block font-medium mb-1">Max Slots per Phase</label>
-              <Input
-                type="number"
-                value={rule.maxSlotsPerPhase}
-                onChange={(e) => handleChange("maxSlotsPerPhase", Number(e.target.value))}
-              />
+            <div className="space-y-2">
+              <Label>Max Slots Per Phase</Label>
+              {isEditing ? (
+                <Input
+                  type="number"
+                  min={1}
+                  value={editedRule.maxSlotsPerPhase}
+                  onChange={(e) =>
+                    setEditedRule({ ...editedRule, maxSlotsPerPhase: Number(e.target.value) })
+                  }
+                />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">{rule.maxSlotsPerPhase}</Badge>
+                  <span className="text-sm text-muted-foreground">max slots</span>
+                </div>
+              )}
             </div>
-          </>
+            {!isEditing && (
+              <p className="text-sm text-muted-foreground">
+                Workers in "{rule.workerGroup}" cannot exceed {rule.maxSlotsPerPhase} slots per phase
+              </p>
+            )}
+          </div>
         )}
       </CardContent>
     </Card>

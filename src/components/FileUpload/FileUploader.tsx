@@ -34,7 +34,7 @@ const HEADER_MAP: Record<string, string> = {
   workergroup: "WorkerGroup",
 };
 
-// 🔧 Normalize a row based on the HEADER_MAP
+// 🔧 Normalize headers for each row
 const normalizeHeaders = (row: Record<string, any>) => {
   const normalized: Record<string, any> = {};
   for (const key in row) {
@@ -42,6 +42,14 @@ const normalizeHeaders = (row: Record<string, any>) => {
     normalized[mappedKey] = row[key];
   }
   return normalized;
+};
+
+// 🔍 Find sheet by keyword match
+const findSheet = (workbook: XLSX.WorkBook, keyword: string) => {
+  const sheetName = workbook.SheetNames.find((name) =>
+    name.toLowerCase().includes(keyword.toLowerCase())
+  );
+  return sheetName ? workbook.Sheets[sheetName] : undefined;
 };
 
 const FileUploader: React.FC<FileUploaderProps> = ({ onDataParsed }) => {
@@ -58,12 +66,16 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onDataParsed }) => {
         const fileData = event.target?.result;
         const workbook = XLSX.read(fileData, { type: "binary" });
 
-        const clientsSheet = workbook.Sheets["Clients"];
-        const workersSheet = workbook.Sheets["Workers"];
-        const tasksSheet = workbook.Sheets["Tasks"];
+        const clientsSheet = findSheet(workbook, "client");
+        const workersSheet = findSheet(workbook, "worker");
+        const tasksSheet = findSheet(workbook, "task");
 
         if (!clientsSheet || !workersSheet || !tasksSheet) {
-          throw new Error("Missing one or more required sheets: Clients, Workers, Tasks.");
+          throw new Error(
+            `❌ Missing one or more required sheets. Found sheets: ${workbook.SheetNames.join(
+              ", "
+            )}`
+          );
         }
 
         const clients = (XLSX.utils.sheet_to_json(clientsSheet) as Record<string, any>[])
@@ -80,7 +92,9 @@ const tasks = (XLSX.utils.sheet_to_json(tasksSheet) as Record<string, any>[])
         onDataParsed({ clients, workers, tasks });
       } catch (err) {
         console.error("❌ Error parsing file:", err);
-        alert("❌ Failed to parse file. Please ensure it contains 'Clients', 'Workers', and 'Tasks' sheets.");
+        alert(
+          "❌ Failed to parse file. Please make sure it includes valid 'Clients', 'Workers', and 'Tasks' sheets."
+        );
       }
     };
 

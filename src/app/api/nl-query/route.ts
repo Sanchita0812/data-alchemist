@@ -1,40 +1,42 @@
-// app/api/nl-query/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import axios from "axios";
+import { NextResponse } from "next/server";
 
-export async function POST(req: NextRequest) {
-  const { question, data } = await req.json();
-
-  const prompt = `
-You are a smart assistant that receives a JSON dataset and a natural language filter request.
-Return ONLY the filtered JSON array of matching objects. No explanations. Output must be valid JSON.
-
-Query: ${question}
-Data: ${JSON.stringify(data).slice(0, 3000)}
-`;
-
+export async function POST(req: Request) {
   try {
-    const groqRes = await axios.post(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        model: "distil-whisper-large-v3-en", 
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.2,
+    const { question, data } = await req.json();
+
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
       },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+      body: JSON.stringify({
+        model: "distil-whisper-large-v3-en",
+        messages: [
+          {
+            role: "system",
+            content: `You're a helpful assistant that filters structured data. Return only a filtered JSON array that matches the query.`,
+          },
+          {
+            role: "user",
+            content: `Question: ${question}\n\nData: ${JSON.stringify(data).slice(0, 12000)}\n\nFilter and return matching records.`,
+          },
+        ],
+      }),
+    });
 
-    const content = groqRes.data.choices?.[0]?.message?.content || "[]";
+    const json = await response.json();
+    const rawAnswer = json.choices?.[0]?.message?.content || "[]";
 
-    const parsed = JSON.parse(content);
+    // Extract just the JSON array from the LLM output
+    const jsonStart = rawAnswer.indexOf("[");
+    const jsonEnd = rawAnswer.lastIndexOf("]") + 1;
+    const sliced = rawAnswer.slice(jsonStart, jsonEnd);
+    const parsed = JSON.parse(sliced);
+
     return NextResponse.json(parsed);
-  } catch (error) {
-    console.error("GROQ error:", error);
-    return NextResponse.json([], { status: 500 });
+  } catch (err) {
+    console.error("❌ Error in /api/nl-query:", err);
+    return new NextResponse("Error filtering data", { status: 500 });
   }
 }

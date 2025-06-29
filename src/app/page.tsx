@@ -20,6 +20,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import Link from "next/link"; // ✅ Import Link
 
 export default function UploadPage() {
   const [parsedData, setParsedData] = useState<{
@@ -48,7 +49,7 @@ export default function UploadPage() {
   const updateEntity = (type: keyof typeof parsedData, updated: any[]) => {
     const newParsed = { ...parsedData, [type]: updated };
     setParsedData(newParsed);
-    validateAllEntities(newParsed); // re-validate only updated state
+    validateAllEntities(newParsed);
   };
 
   const getErrorsFor = (entity: keyof typeof parsedData) =>
@@ -88,7 +89,7 @@ export default function UploadPage() {
       const filtered = await res.json();
       const updated = { ...parsedData, [searchEntity]: filtered };
       setParsedData(updated);
-      validateAllEntities(updated); // validate filtered results only
+      validateAllEntities(updated);
     } catch (err) {
       console.error("❌ Error in filtering:", err);
       alert("Something went wrong while filtering.");
@@ -143,7 +144,7 @@ export default function UploadPage() {
           onClick={() => {
             setParsedData(originalData);
             setSearchInput("");
-            validateAllEntities(originalData); // Reset + validate full
+            validateAllEntities(originalData);
           }}
         >
           Reset
@@ -189,7 +190,8 @@ export default function UploadPage() {
 
       <Separator className="my-8" />
 
-      <div className="flex justify-end">
+      {/* CTA */}
+      <div className="flex justify-between items-center">
         <Button
           variant="default"
           disabled={
@@ -200,6 +202,10 @@ export default function UploadPage() {
           }
         >
           Proceed to Next Step
+        </Button>
+
+        <Button asChild variant="outline">
+          <Link href="/rules">➕ Go to Rule Builder</Link>
         </Button>
       </div>
     </div>

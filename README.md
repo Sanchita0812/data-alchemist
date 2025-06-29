@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Data Alchemist
 
-## Getting Started
+**Data Alchemist** is an AI-powered data validation and rule configuration platform for scheduling optimization. It enables users to upload structured Excel data for Clients, Workers, and Tasks, apply intelligent validation, define business rules via an intuitive UI, and generate exportable rule configurations.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Data Upload & Validation
+- Upload a unified `.xlsx` file containing **Clients**, **Workers**, and **Tasks** sheets.
+- Inline and summary validation with clear error messages.
+- Validates fields like `TaskID`, `RequiredSkills`, `PreferredPhases`, `MaxLoadPerPhase`, etc.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Natural Language Filtering
+- Search and filter entities (Clients, Workers, Tasks) using plain English.
+- Powered by Groq API and LLMs for intelligent, contextual queries.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Rule Builder UI
+- Build complex business rules without writing code.
+- Supported Rule Types:
+  - `CoRun`: Specify TaskIDs that should run together.
+  - `SlotRestriction`: Define groups of clients that require overlapping slots.
+  - `LoadLimit`: Set worker group capacity limits per phase.
+- Input fields with real-time validation.
+- Stores rules in both local state and a global store.
 
-## Learn More
+### Rule Validation
+- Automatically checks all rules against the current dataset.
+- Highlights rule violations with detailed reasons.
 
-To learn more about Next.js, take a look at the following resources:
+### Rule Application
+- Apply rules to the dataset and view pass/fail results.
+- Each rule returns validation status and explanation.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Data & Rule Visualizations (Future Prospect)
+- Skill distribution bar chart.
+- Task distribution across phases.
+- Rule success/failure statistics.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Export
+- Export cleaned dataset (`.xlsx`) including all validated data sheets.
+- Export rules configuration (`rules.json`) with all defined rules.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Tech Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Area              | Tech Used                            |
+|-------------------|--------------------------------------|
+| Framework         | Next.js 14 (App Router, TypeScript)  |
+| UI Library        | Tailwind CSS, Radix UI               |
+| Forms & Grids     | Custom Editable Components           |
+| LLM Integration   | Groq API (`llama3`, `mixtral`)       |
+| Excel Parsing     | `xlsx` JavaScript library            |
+| State Management  | Zustand (Global Store)               |
+
+
+

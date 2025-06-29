@@ -1,17 +1,31 @@
 import { create } from "zustand";
 
-interface ParsedData {
+type EntityType = "clients" | "workers" | "tasks";
+
+export interface ParsedData {
   clients: any[];
   workers: any[];
   tasks: any[];
 }
 
 interface ParsedDataStore {
-  data: ParsedData;
-  setData: (newData: ParsedData) => void;
+  parsedData: ParsedData;
+  setParsedData: (data: ParsedData) => void;
+  updateEntity: (type: EntityType, updated: any[]) => void;
 }
 
 export const useParsedDataStore = create<ParsedDataStore>((set) => ({
-  data: { clients: [], workers: [], tasks: [] },
-  setData: (newData) => set({ data: newData }),
+  parsedData: {
+    clients: [],
+    workers: [],
+    tasks: [],
+  },
+  setParsedData: (data) => set({ parsedData: data }),
+  updateEntity: (type, updated) =>
+    set((state) => ({
+      parsedData: {
+        ...state.parsedData,
+        [type]: updated,
+      },
+    })),
 }));

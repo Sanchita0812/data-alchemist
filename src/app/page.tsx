@@ -13,14 +13,22 @@ import {
   ValidationError,
 } from "@/lib/validateData";
 import { Input } from "@/components/ui/input";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 export default function UploadPage() {
   const [parsedData, setParsedData] = useState<{
     clients: any[];
     workers: any[];
     tasks: any[];
-  }>({
+  }>({ clients: [], workers: [], tasks: [] });
+
+  const [originalData, setOriginalData] = useState<typeof parsedData>({
     clients: [],
     workers: [],
     tasks: [],
@@ -31,7 +39,47 @@ export default function UploadPage() {
   const [searchEntity, setSearchEntity] = useState<"clients" | "workers" | "tasks">("tasks");
   const [isFiltering, setIsFiltering] = useState(false);
 
-  // Re-validate whenever parsed data changes
+  // Handle parsing from uploader
+  const handleAllSheetsParsed = (data: typeof parsedData) => {
+    setParsedData(data);
+    setOriginalData(data);
+  };
+
+  // Update any entity's data
+  const updateEntity = (type: keyof typeof parsedData, updated: any[]) => {
+    setParsedData((prev) => ({ ...prev, [type]: updated }));
+  };
+
+  // Get validation errors by entity
+  const getErrorsFor = (entity: keyof typeof parsedData) =>
+    validationErrors.filter((e) => e.entity === entity);
+
+  // Natural language filtering
+  const handleNaturalSearch = async () => {
+    if (!searchInput.trim()) return;
+    setIsFiltering(true);
+
+    try {
+      const res = await fetch("/api/nl-query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: searchInput,
+          data: originalData[searchEntity],
+        }),
+      });
+
+      const filtered = await res.json();
+      updateEntity(searchEntity, filtered);
+    } catch (err) {
+      console.error("❌ Error running NL query:", err);
+      alert("Something went wrong while filtering.");
+    } finally {
+      setIsFiltering(false);
+    }
+  };
+
+  // Run validation on upload or change
   useEffect(() => {
     if (
       parsedData.clients.length &&
@@ -55,49 +103,9 @@ export default function UploadPage() {
     }
   }, [parsedData]);
 
-  const handleAllSheetsParsed = (data: {
-    clients: any[];
-    workers: any[];
-    tasks: any[];
-  }) => {
-    setParsedData(data);
-  };
-
-  const updateEntity = (type: "clients" | "workers" | "tasks", updated: any[]) => {
-    setParsedData((prev) => ({ ...prev, [type]: updated }));
-  };
-
-  const getErrorsFor = (entity: "clients" | "workers" | "tasks") =>
-    validationErrors.filter((e) => e.entity === entity);
-
-  // 🧠 Natural Language Search Function
-  const handleNaturalSearch = async () => {
-    if (!searchInput.trim()) return;
-    setIsFiltering(true);
-
-    try {
-      const res = await fetch("/api/nl-query", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question: searchInput,
-          data: parsedData[searchEntity],
-        }),
-      });
-
-      const filtered = await res.json();
-      updateEntity(searchEntity, filtered);
-    } catch (err) {
-      console.error("❌ Error running NL query:", err);
-      alert("Something went wrong while filtering. Try again.");
-    } finally {
-      setIsFiltering(false);
-    }
-  };
-
   return (
     <div className="min-h-screen p-6 bg-muted/50">
-      {/* Header */}
+      {/* HEADER */}
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">📂 Upload Entity File</h1>
         <p className="text-muted-foreground mt-1">
@@ -105,7 +113,7 @@ export default function UploadPage() {
         </p>
       </div>
 
-      {/* Upload */}
+      {/* FILE UPLOADER */}
       <Card className="shadow-md mb-6">
         <CardContent className="p-4">
           <h2 className="text-lg font-medium mb-2">Upload File</h2>
@@ -113,7 +121,7 @@ export default function UploadPage() {
         </CardContent>
       </Card>
 
-      {/* Search Bar */}
+      {/* SEARCH SECTION */}
       <div className="flex flex-col md:flex-row items-start md:items-center gap-3 mb-6">
         <Input
           value={searchInput}
@@ -121,8 +129,7 @@ export default function UploadPage() {
           placeholder="🔍 e.g. tasks with duration > 2 and preferred phase 3"
           className="w-full md:w-2/3"
         />
-
-        <Select value={searchEntity} onValueChange={(value) => setSearchEntity(value as any)}>
+        <Select value={searchEntity} onValueChange={(val) => setSearchEntity(val as any)}>
           <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="Select Entity" />
           </SelectTrigger>
@@ -133,15 +140,15 @@ export default function UploadPage() {
           </SelectContent>
         </Select>
 
-        <Button variant="outline" onClick={handleNaturalSearch} disabled={isFiltering || !searchInput}>
+        <Button onClick={handleNaturalSearch} disabled={isFiltering || !searchInput}>
           {isFiltering ? "Filtering..." : `Search ${searchEntity}`}
         </Button>
 
         <Button
           variant="ghost"
           onClick={() => {
+            setParsedData(originalData);
             setSearchInput("");
-            handleAllSheetsParsed(parsedData); // Reset
           }}
         >
           Reset
@@ -150,7 +157,7 @@ export default function UploadPage() {
 
       <Separator className="my-8" />
 
-      {/* Validation Summary */}
+      {/* VALIDATION ERRORS */}
       {!!validationErrors.length && (
         <div className="bg-red-100 border border-red-300 p-4 rounded-md my-6">
           <h3 className="text-lg font-semibold text-red-700 mb-2">
@@ -167,7 +174,7 @@ export default function UploadPage() {
         </div>
       )}
 
-      {/* Clients Grid */}
+      {/* CLIENTS */}
       {!!parsedData.clients.length && (
         <div className="mb-10">
           <h2 className="text-xl font-semibold mb-2">🧑 Clients</h2>
@@ -180,7 +187,7 @@ export default function UploadPage() {
         </div>
       )}
 
-      {/* Workers Grid */}
+      {/* WORKERS */}
       {!!parsedData.workers.length && (
         <div className="mb-10">
           <h2 className="text-xl font-semibold mb-2">👷 Workers</h2>
@@ -193,7 +200,7 @@ export default function UploadPage() {
         </div>
       )}
 
-      {/* Tasks Grid */}
+      {/* TASKS */}
       {!!parsedData.tasks.length && (
         <div className="mb-10">
           <h2 className="text-xl font-semibold mb-2">📝 Tasks</h2>

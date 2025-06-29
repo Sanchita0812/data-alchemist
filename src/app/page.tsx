@@ -39,22 +39,38 @@ export default function UploadPage() {
   const [searchEntity, setSearchEntity] = useState<"clients" | "workers" | "tasks">("tasks");
   const [isFiltering, setIsFiltering] = useState(false);
 
-  // Handle parsing from uploader
   const handleAllSheetsParsed = (data: typeof parsedData) => {
     setParsedData(data);
     setOriginalData(data);
+    validateAllEntities(data);
   };
 
-  // Update any entity's data
   const updateEntity = (type: keyof typeof parsedData, updated: any[]) => {
-    setParsedData((prev) => ({ ...prev, [type]: updated }));
+    const newParsed = { ...parsedData, [type]: updated };
+    setParsedData(newParsed);
+    validateAllEntities(newParsed); // re-validate only updated state
   };
 
-  // Get validation errors by entity
   const getErrorsFor = (entity: keyof typeof parsedData) =>
     validationErrors.filter((e) => e.entity === entity);
 
-  // Natural language filtering
+  const validateAllEntities = (data: typeof parsedData) => {
+    const allTaskIDs = new Set(data.tasks.map((t) => t.TaskID));
+    const allWorkerSkills = new Set(
+      data.workers.flatMap((w) =>
+        String(w.Skills || "")
+          .split(",")
+          .map((s) => s.trim().toLowerCase())
+      )
+    );
+
+    const clientErrors = validateClients(data.clients, allTaskIDs);
+    const taskErrors = validateTasks(data.tasks, allWorkerSkills);
+    const workerErrors = validateWorkers(data.workers);
+
+    setValidationErrors([...clientErrors, ...taskErrors, ...workerErrors]);
+  };
+
   const handleNaturalSearch = async () => {
     if (!searchInput.trim()) return;
     setIsFiltering(true);
@@ -70,42 +86,20 @@ export default function UploadPage() {
       });
 
       const filtered = await res.json();
-      updateEntity(searchEntity, filtered);
+      const updated = { ...parsedData, [searchEntity]: filtered };
+      setParsedData(updated);
+      validateAllEntities(updated); // validate filtered results only
     } catch (err) {
-      console.error("❌ Error running NL query:", err);
+      console.error("❌ Error in filtering:", err);
       alert("Something went wrong while filtering.");
     } finally {
       setIsFiltering(false);
     }
   };
 
-  // Run validation on upload or change
-  useEffect(() => {
-    if (
-      parsedData.clients.length &&
-      parsedData.workers.length &&
-      parsedData.tasks.length
-    ) {
-      const allTaskIDs = new Set(parsedData.tasks.map((t) => t.TaskID));
-      const allWorkerSkills = new Set(
-        parsedData.workers.flatMap((w) =>
-          String(w.Skills || "")
-            .split(",")
-            .map((s) => s.trim().toLowerCase())
-        )
-      );
-
-      const clientErrors = validateClients(parsedData.clients, allTaskIDs);
-      const taskErrors = validateTasks(parsedData.tasks, allWorkerSkills);
-      const workerErrors = validateWorkers(parsedData.workers);
-
-      setValidationErrors([...clientErrors, ...taskErrors, ...workerErrors]);
-    }
-  }, [parsedData]);
-
   return (
     <div className="min-h-screen p-6 bg-muted/50">
-      {/* HEADER */}
+      {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">📂 Upload Entity File</h1>
         <p className="text-muted-foreground mt-1">
@@ -113,7 +107,7 @@ export default function UploadPage() {
         </p>
       </div>
 
-      {/* FILE UPLOADER */}
+      {/* Upload */}
       <Card className="shadow-md mb-6">
         <CardContent className="p-4">
           <h2 className="text-lg font-medium mb-2">Upload File</h2>
@@ -121,7 +115,7 @@ export default function UploadPage() {
         </CardContent>
       </Card>
 
-      {/* SEARCH SECTION */}
+      {/* Search */}
       <div className="flex flex-col md:flex-row items-start md:items-center gap-3 mb-6">
         <Input
           value={searchInput}
@@ -149,6 +143,7 @@ export default function UploadPage() {
           onClick={() => {
             setParsedData(originalData);
             setSearchInput("");
+            validateAllEntities(originalData); // Reset + validate full
           }}
         >
           Reset
@@ -157,7 +152,6 @@ export default function UploadPage() {
 
       <Separator className="my-8" />
 
-      {/* VALIDATION ERRORS */}
       {!!validationErrors.length && (
         <div className="bg-red-100 border border-red-300 p-4 rounded-md my-6">
           <h3 className="text-lg font-semibold text-red-700 mb-2">
@@ -174,48 +168,27 @@ export default function UploadPage() {
         </div>
       )}
 
-      {/* CLIENTS */}
-      {!!parsedData.clients.length && (
-        <div className="mb-10">
-          <h2 className="text-xl font-semibold mb-2">🧑 Clients</h2>
-          <DataGrid
-            entity="clients"
-            data={parsedData.clients}
-            onChange={(data) => updateEntity("clients", data)}
-            validationErrors={getErrorsFor("clients")}
-          />
-        </div>
-      )}
-
-      {/* WORKERS */}
-      {!!parsedData.workers.length && (
-        <div className="mb-10">
-          <h2 className="text-xl font-semibold mb-2">👷 Workers</h2>
-          <DataGrid
-            entity="workers"
-            data={parsedData.workers}
-            onChange={(data) => updateEntity("workers", data)}
-            validationErrors={getErrorsFor("workers")}
-          />
-        </div>
-      )}
-
-      {/* TASKS */}
-      {!!parsedData.tasks.length && (
-        <div className="mb-10">
-          <h2 className="text-xl font-semibold mb-2">📝 Tasks</h2>
-          <DataGrid
-            entity="tasks"
-            data={parsedData.tasks}
-            onChange={(data) => updateEntity("tasks", data)}
-            validationErrors={getErrorsFor("tasks")}
-          />
-        </div>
-      )}
+      {/* Grids */}
+      {(["clients", "workers", "tasks"] as const).map((entity) => (
+        !!parsedData[entity].length && (
+          <div className="mb-10" key={entity}>
+            <h2 className="text-xl font-semibold mb-2">
+              {entity === "clients" && "🧑 Clients"}
+              {entity === "workers" && "👷 Workers"}
+              {entity === "tasks" && "📝 Tasks"}
+            </h2>
+            <DataGrid
+              entity={entity}
+              data={parsedData[entity]}
+              onChange={(data) => updateEntity(entity, data)}
+              validationErrors={getErrorsFor(entity)}
+            />
+          </div>
+        )
+      ))}
 
       <Separator className="my-8" />
 
-      {/* CTA */}
       <div className="flex justify-end">
         <Button
           variant="default"

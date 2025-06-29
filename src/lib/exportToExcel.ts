@@ -33,3 +33,11 @@ export function exportRuleResultsToExcel(results: any[]) {
   XLSX.utils.book_append_sheet(wb, sheet, "Rule Results");
   XLSX.writeFile(wb, "rule_results.xlsx");
 }
+
+export function exportRulesToJSON(rules: any[]) {
+  const wb = XLSX.utils.book_new();
+  const sheet = XLSX.utils.json_to_sheet(rules);
+  
+  XLSX.utils.book_append_sheet(wb, sheet, "Rules");
+  XLSX.writeFile(wb, "rules.json");
+}

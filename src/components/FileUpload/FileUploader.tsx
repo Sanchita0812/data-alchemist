@@ -2,16 +2,17 @@
 
 import React from "react";
 import * as XLSX from "xlsx";
-import Papa from "papaparse";
 
-export type FileType = "clients" | "workers" | "tasks";
-
+// 📦 Props: Single callback with all parsed entities
 export interface FileUploaderProps {
-  type: FileType;
-  onDataParsed: (type: FileType, data: any[]) => void;
+  onDataParsed: (data: {
+    clients: any[];
+    workers: any[];
+    tasks: any[];
+  }) => void;
 }
 
-// Header normalization map
+// 🧠 Header normalization map
 const HEADER_MAP: Record<string, string> = {
   client_name: "ClientName",
   "client id": "ClientID",
@@ -33,68 +34,65 @@ const HEADER_MAP: Record<string, string> = {
   workergroup: "WorkerGroup",
 };
 
-// Normalize row headers using HEADER_MAP
-function normalizeHeaders(row: Record<string, any>) {
-  const normalizedRow: Record<string, any> = {};
+// 🔧 Normalize a row based on the HEADER_MAP
+const normalizeHeaders = (row: Record<string, any>) => {
+  const normalized: Record<string, any> = {};
   for (const key in row) {
     const mappedKey = HEADER_MAP[key.trim().toLowerCase()] || key;
-    normalizedRow[mappedKey] = row[key];
+    normalized[mappedKey] = row[key];
   }
-  return normalizedRow;
-}
+  return normalized;
+};
 
-const FileUploader: React.FC<FileUploaderProps> = ({ type, onDataParsed }) => {
+const FileUploader: React.FC<FileUploaderProps> = ({ onDataParsed }) => {
   const [fileName, setFileName] = React.useState("");
 
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
 
     reader.onload = (event) => {
-      const fileData = event.target?.result;
-      let parsedData: any[] = [];
-
       try {
-        if (file.name.endsWith(".csv")) {
-          const parsed = Papa.parse(fileData as string, {
-            header: true,
-            skipEmptyLines: true,
-          });
-          parsedData = parsed.data as any[];
-        } else if (file.name.endsWith(".xlsx")) {
-          const workbook = XLSX.read(fileData, { type: "binary" });
-          const sheetName = workbook.SheetNames[0];
-          const sheet = workbook.Sheets[sheetName];
-          parsedData = XLSX.utils.sheet_to_json(sheet);
+        const fileData = event.target?.result;
+        const workbook = XLSX.read(fileData, { type: "binary" });
+
+        const clientsSheet = workbook.Sheets["Clients"];
+        const workersSheet = workbook.Sheets["Workers"];
+        const tasksSheet = workbook.Sheets["Tasks"];
+
+        if (!clientsSheet || !workersSheet || !tasksSheet) {
+          throw new Error("Missing one or more required sheets: Clients, Workers, Tasks.");
         }
 
-        // Normalize headers using AI-style mapping
-        parsedData = parsedData.map(normalizeHeaders);
+        const clients = (XLSX.utils.sheet_to_json(clientsSheet) as Record<string, any>[])
+  .map(normalizeHeaders);
 
-        // Update state and pass parsed data
+const workers = (XLSX.utils.sheet_to_json(workersSheet) as Record<string, any>[])
+  .map(normalizeHeaders);
+
+const tasks = (XLSX.utils.sheet_to_json(tasksSheet) as Record<string, any>[])
+  .map(normalizeHeaders);
+
+
         setFileName(file.name);
-        onDataParsed(type, parsedData);
-      } catch (error) {
-        console.error("Error parsing file:", error);
-        alert("❌ Failed to parse file. Please check format or data.");
+        onDataParsed({ clients, workers, tasks });
+      } catch (err) {
+        console.error("❌ Error parsing file:", err);
+        alert("❌ Failed to parse file. Please ensure it contains 'Clients', 'Workers', and 'Tasks' sheets.");
       }
     };
 
-    if (file.name.endsWith(".csv")) {
-      reader.readAsText(file);
-    } else {
-      reader.readAsBinaryString(file);
-    }
+    reader.readAsBinaryString(file);
   };
 
   return (
-    <div className="flex flex-col gap-2 p-2 border rounded-xl shadow-sm bg-white">
-      <label className="text-sm font-semibold capitalize">{type} file</label>
+    <div className="flex flex-col gap-2 p-4 border rounded-xl shadow-sm bg-white">
+      <label className="text-sm font-semibold">Upload Unified File (.xlsx)</label>
       <input
         type="file"
-        accept=".csv,.xlsx"
+        accept=".xlsx"
         onChange={handleFile}
         className="text-sm"
       />

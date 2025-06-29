@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { applyRules, ApplyRuleResult } from "@/lib/applyRules";
+import { exportEntitiesToExcel, exportRuleResultsToExcel } from "@/lib/exportToExcel";
 import { Button } from "@/components/ui/button";
 import RuleResultCard from "@/components/Rule/RuleResultCard";
 import { Separator } from "@/components/ui/separator";
@@ -10,8 +11,8 @@ import { useParsedDataStore } from "@/store/parsedDataStore";
 import { useRuleStore } from "@/store/ruleStore";
 
 export default function RuleApplyPage() {
-  const { parsedData } = useParsedDataStore();   // ✅ parsedData = { clients, workers, tasks }
-  const { rules } = useRuleStore();              // ✅ rules = Rule[]
+  const { parsedData } = useParsedDataStore();   
+  const { rules } = useRuleStore();              
 
   const [results, setResults] = useState<ApplyRuleResult[]>([]);
   const [ran, setRan] = useState(false);
@@ -24,6 +25,18 @@ export default function RuleApplyPage() {
     setRan(true);
   };
 
+  const handleExportDataset = () => {
+    if (parsedData) {
+      exportEntitiesToExcel(parsedData);
+    }
+  };
+
+  const handleExportResults = () => {
+    if (results.length > 0) {
+      exportRuleResultsToExcel(results);
+    }
+  };
+
   return (
     <div className="min-h-screen p-6 bg-muted/50">
       <h1 className="text-2xl font-semibold mb-4">🧠 Apply Rules</h1>
@@ -31,9 +44,17 @@ export default function RuleApplyPage() {
         Review how your defined rules behave on the current dataset.
       </p>
 
-      <Button onClick={handleRunRules} disabled={!rules.length}>
-        ▶️ Run All Rules
-      </Button>
+      <div className="flex flex-wrap gap-4 mb-6">
+        <Button onClick={handleRunRules} disabled={!rules.length}>
+          ▶️ Run All Rules
+        </Button>
+        <Button variant="outline" onClick={handleExportDataset}>
+          📤 Export Cleaned Dataset
+        </Button>
+        <Button variant="outline" onClick={handleExportResults} disabled={!results.length}>
+          📋 Export Rule Results
+        </Button>
+      </div>
 
       <Separator className="my-6" />
 

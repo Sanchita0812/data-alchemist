@@ -6,7 +6,7 @@ import React from "react";
 import { ApplyRuleResult } from "@/lib/applyRules";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+//import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface RuleResultGridProps {
   results: ApplyRuleResult[];
@@ -15,7 +15,7 @@ interface RuleResultGridProps {
 const RuleResultGrid: React.FC<RuleResultGridProps> = ({ results }) => {
   return (
     <div className="grid gap-6">
-      {results.map((result, idx) => {
+      {results.map((result) => {
         const { rule, passed, reason } = result;
 
         return (

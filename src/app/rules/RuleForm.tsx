@@ -16,7 +16,7 @@ export interface RuleFormProps {
   workers: any[];
 }
 
-const RuleForm: React.FC<RuleFormProps> = ({ onAddRule, tasks, clients, workers }) => {
+const RuleForm: React.FC<RuleFormProps> = ({ onAddRule, tasks}) => {   //tasks, clients, workers
   const [ruleType, setRuleType] = useState<RuleType>("coRun");
   
   // Co-Run rule inputs

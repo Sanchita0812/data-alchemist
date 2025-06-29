@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import FileUploader from "@/components/FileUpload/FileUploader";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+//import { Separator } from "@/components/ui/separator";
 import DataGrid from "@/components/ui/DataGrid";
 import {
   validateClients,

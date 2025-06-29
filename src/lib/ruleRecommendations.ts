@@ -125,7 +125,7 @@ function findLoadLimitOpportunities(workers: any[]): RuleRecommendation[] {
 
     const avgLoad = loads.reduce((sum, load) => sum + load, 0) / loads.length;
     const maxLoad = Math.max(...loads);
-    const minLoad = Math.min(...loads);
+   // const minLoad = Math.min(...loads);
 
     // Check for overloaded workers
     const overloadedWorkers = groupWorkers.filter(w => {

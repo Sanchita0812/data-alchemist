@@ -7,78 +7,89 @@ import RuleList from "./RuleList";
 import { validateRules, RuleViolation } from "@/lib/validateRules";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useDataStore } from "@/store/dataStore";
+import { useParsedDataStore } from "@/store/parsedDataStore";
 import { useRuleStore } from "@/store/ruleStore";
 
 export default function RulePage() {
-  const { parsedData } = useDataStore(); 
-  const { setRules: setGlobalRules } = useRuleStore(); 
+  const { parsedData } = useParsedDataStore(); 
+  const { rules, setRules: setGlobalRules } = useRuleStore(); 
 
-  const [rules, setRules] = useState<Rule[]>([]);
+  const [localRules, setLocalRules] = useState<Rule[]>([]);
   const [violations, setViolations] = useState<RuleViolation[]>([]);
 
-  // 🔁 Add rule
+  // Sync with global rules on mount
+  useEffect(() => {
+    setLocalRules(rules);
+  }, [rules]);
+
+  // Add rule
   const handleAddRule = (newRule: Rule) => {
-    const updated = [...rules, newRule];
-    setRules(updated);
+    const updated = [...localRules, newRule];
+    setLocalRules(updated);
     setGlobalRules(updated);
   };
 
-  // ✏️ Update rule (from RuleCard inline edits)
+  // Update rule (from RuleCard inline edits)
   const handleUpdateRule = (updatedRule: Rule) => {
-    const updated = rules.map((r) => (r.id === updatedRule.id ? updatedRule : r));
-    setRules(updated);
+    const updated = localRules.map((r) => (r.id === updatedRule.id ? updatedRule : r));
+    setLocalRules(updated);
     setGlobalRules(updated);
   };
 
-  // ❌ Delete rule
+  // Delete rule
   const handleDeleteRule = (id: string) => {
-    const updated = rules.filter((r) => r.id !== id);
-    setRules(updated);
+    const updated = localRules.filter((r) => r.id !== id);
+    setLocalRules(updated);
     setGlobalRules(updated);
   };
 
-  // ✅ Manual validation
+  // Manual validation
   const handleValidateRules = () => {
-    const result = validateRules(rules, parsedData);
+    if (!parsedData || (!parsedData.clients.length && !parsedData.workers.length && !parsedData.tasks.length)) {
+      alert("Please upload and parse data first before validating rules.");
+      return;
+    }
+    
+    const result = validateRules(localRules, parsedData);
     setViolations(result);
   };
 
-  // 🚨 Auto validate on change
+  // Auto validate on change
   useEffect(() => {
-    if (rules.length) {
-      handleValidateRules();
+    if (localRules.length && parsedData && (parsedData.clients.length || parsedData.workers.length || parsedData.tasks.length)) {
+      const result = validateRules(localRules, parsedData);
+      setViolations(result);
     }
-  }, [rules, parsedData]);
+  }, [localRules, parsedData]);
 
   return (
     <div className="min-h-screen p-6 bg-muted/50">
       <h1 className="text-2xl font-semibold mb-4">⚙️ Rule Builder</h1>
 
-      {/* ✅ Rule Input */}
+      {/* Rule Input */}
       <RuleForm
         onAddRule={handleAddRule}
-        tasks={parsedData.tasks}
-        clients={parsedData.clients}
-        workers={parsedData.workers}
+        tasks={parsedData?.tasks || []}
+        clients={parsedData?.clients || []}
+        workers={parsedData?.workers || []}
       />
 
       <Separator className="my-4" />
 
-      {/* 📋 List of rules */}
+      {/* List of rules */}
       <RuleList
-        rules={rules}
+        rules={localRules}
         onDelete={handleDeleteRule}
-        onUpdate={handleUpdateRule} // ✅ for editable RuleCard
+        onUpdate={handleUpdateRule}
       />
 
       <div className="mt-6 flex justify-end">
-        <Button onClick={handleValidateRules} disabled={!rules.length}>
+        <Button onClick={handleValidateRules} disabled={!localRules.length}>
           ✅ Validate Rules
         </Button>
       </div>
 
-      {/* ⚠️ Violations */}
+      {/* Violations */}
       {violations.length > 0 && (
         <div className="bg-yellow-100 border border-yellow-400 p-4 rounded-md my-6">
           <h3 className="text-lg font-semibold text-yellow-700 mb-2">

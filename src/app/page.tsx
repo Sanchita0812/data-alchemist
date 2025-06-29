@@ -21,14 +21,11 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import Link from "next/link";
+import { useParsedDataStore } from "@/store/parsedDataStore";
 
 export default function UploadPage() {
-  const [parsedData, setParsedData] = useState<{
-    clients: any[];
-    workers: any[];
-    tasks: any[];
-  }>({ clients: [], workers: [], tasks: [] });
-
+  const { parsedData, setParsedData, updateEntity } = useParsedDataStore();
+  
   const [originalData, setOriginalData] = useState<typeof parsedData>({
     clients: [],
     workers: [],
@@ -48,9 +45,10 @@ export default function UploadPage() {
   };
 
   // Called on inline edits or search filter update
-  const updateEntity = (type: keyof typeof parsedData, updated: any[]) => {
+  const handleUpdateEntity = (type: keyof typeof parsedData, updated: any[]) => {
     const newParsed = { ...parsedData, [type]: updated };
     setParsedData(newParsed);
+    updateEntity(type, updated);
     validateAllEntities(newParsed);
   };
 
@@ -186,7 +184,7 @@ export default function UploadPage() {
             <DataGrid
               entity={entity}
               data={parsedData[entity]}
-              onChange={(data) => updateEntity(entity, data)}
+              onChange={(data) => handleUpdateEntity(entity, data)}
               validationErrors={getErrorsFor(entity)}
             />
           </div>

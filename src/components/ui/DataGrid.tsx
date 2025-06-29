@@ -2,52 +2,103 @@
 
 import React from "react";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { ValidationError } from "@/lib/validateData";
+import classNames from "classnames";
 
 interface DataGridProps {
   data: any[];
-  onChange: (updatedData: any[]) => void;
+  onChange: (updated: any[]) => void;
+  validationErrors?: ValidationError[];
+  entity: "clients" | "workers" | "tasks";
 }
 
-export default function DataGrid({ data, onChange }: DataGridProps) {
-  if (!data || data.length === 0) return null;
+const DataGrid: React.FC<DataGridProps> = ({
+  data,
+  onChange,
+  validationErrors = [],
+  entity,
+}) => {
+  const columns = data.length > 0 ? Object.keys(data[0]) : [];
 
-  const keys = Object.keys(data[0]);
-
-  const handleChange = (rowIdx: number, key: string, value: string) => {
+  const handleCellChange = (rowIndex: number, key: string, value: string) => {
     const updated = [...data];
-    updated[rowIdx] = { ...updated[rowIdx], [key]: value };
+    updated[rowIndex] = { ...updated[rowIndex], [key]: value };
     onChange(updated);
   };
 
+  const getErrorForCell = (rowIndex: number, field: string) =>
+    validationErrors.find(
+      (err) =>
+        err.rowIndex === rowIndex &&
+        err.field === field &&
+        err.entity === entity
+    );
+
   return (
-    <div className="overflow-auto border rounded-lg mt-4">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            {keys.map((key) => (
-              <TableHead key={key} className="capitalize">
-                {key}
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((row, rowIdx) => (
-            <TableRow key={rowIdx}>
-              {keys.map((key) => (
-                <TableCell key={key}>
-                  <Input
-                    value={row[key] ?? ""}
-                    onChange={(e) => handleChange(rowIdx, key, e.target.value)}
-                    className="text-sm"
-                  />
-                </TableCell>
+    <TooltipProvider>
+      <div className="overflow-auto border rounded-lg">
+        <table className="min-w-full text-sm">
+          <thead className="bg-muted/40">
+            <tr>
+              {columns.map((col) => (
+                <th
+                  key={col}
+                  className="text-left px-3 py-2 font-medium text-muted-foreground whitespace-nowrap"
+                >
+                  {col}
+                </th>
               ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((row, rowIndex) => (
+              <tr key={rowIndex} className="border-t">
+                {columns.map((col) => {
+                  const error = getErrorForCell(rowIndex, col);
+                  const hasError = !!error;
+
+                  const input = (
+                    <Input
+                      value={row[col] ?? ""}
+                      onChange={(e) =>
+                        handleCellChange(rowIndex, col, e.target.value)
+                      }
+                      className={classNames("text-sm w-full", {
+                        "border-red-500 bg-red-50": hasError,
+                      })}
+                    />
+                  );
+
+                  return (
+                    <td key={col} className="p-2 align-top">
+                      {hasError ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>{input}</TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-[200px]">
+                            <span className="text-xs text-red-700">
+                              ⚠ {error.message}
+                            </span>
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        input
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </TooltipProvider>
   );
-}
+};
+
+export default DataGrid;

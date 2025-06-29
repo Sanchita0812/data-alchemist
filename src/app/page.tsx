@@ -26,7 +26,6 @@ export default function UploadPage() {
 
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
 
-  // Run validation whenever parsedData changes
   useEffect(() => {
     if (
       parsedData.clients.length &&
@@ -47,7 +46,6 @@ export default function UploadPage() {
       const workerErrors = validateWorkers(parsedData.workers);
 
       setValidationErrors([...clientErrors, ...taskErrors, ...workerErrors]);
-      console.log("✅ Validation complete");
     }
   }, [parsedData]);
 
@@ -63,9 +61,11 @@ export default function UploadPage() {
     setParsedData((prev) => ({ ...prev, [type]: updated }));
   };
 
+  const getErrorsFor = (entity: "clients" | "workers" | "tasks") =>
+    validationErrors.filter((e) => e.entity === entity);
+
   return (
     <div className="min-h-screen p-6 bg-muted/50">
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">📂 Upload Entity File</h1>
         <p className="text-muted-foreground mt-1">
@@ -73,7 +73,6 @@ export default function UploadPage() {
         </p>
       </div>
 
-      {/* File Uploader */}
       <Card className="shadow-md mb-6">
         <CardContent className="p-4">
           <h2 className="text-lg font-medium mb-2">Upload File</h2>
@@ -83,7 +82,6 @@ export default function UploadPage() {
 
       <Separator className="my-8" />
 
-      {/* Validation Errors Summary */}
       {!!validationErrors.length && (
         <div className="bg-red-100 border border-red-300 p-4 rounded-md my-6">
           <h3 className="text-lg font-semibold text-red-700 mb-2">
@@ -100,42 +98,44 @@ export default function UploadPage() {
         </div>
       )}
 
-      {/* Clients Grid */}
       {!!parsedData.clients.length && (
         <div className="mb-10">
           <h2 className="text-xl font-semibold mb-2">🧑 Clients</h2>
           <DataGrid
+            entity="clients"
             data={parsedData.clients}
             onChange={(data) => updateEntity("clients", data)}
+            validationErrors={getErrorsFor("clients")}
           />
         </div>
       )}
 
-      {/* Workers Grid */}
       {!!parsedData.workers.length && (
         <div className="mb-10">
           <h2 className="text-xl font-semibold mb-2">👷 Workers</h2>
           <DataGrid
+            entity="workers"
             data={parsedData.workers}
             onChange={(data) => updateEntity("workers", data)}
+            validationErrors={getErrorsFor("workers")}
           />
         </div>
       )}
 
-      {/* Tasks Grid */}
       {!!parsedData.tasks.length && (
         <div className="mb-10">
           <h2 className="text-xl font-semibold mb-2">📝 Tasks</h2>
           <DataGrid
+            entity="tasks"
             data={parsedData.tasks}
             onChange={(data) => updateEntity("tasks", data)}
+            validationErrors={getErrorsFor("tasks")}
           />
         </div>
       )}
 
       <Separator className="my-8" />
 
-      {/* CTA Button */}
       <div className="flex justify-end">
         <Button
           variant="default"

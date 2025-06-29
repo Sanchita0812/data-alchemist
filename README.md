@@ -41,6 +41,9 @@
 - Export cleaned dataset (`.xlsx`) including all validated data sheets.
 - Export rules configuration (`rules.json`) with all defined rules.
 
+### Future Scope
+- Data Visualisation Possibilities
+- Better, Cleaner UI
 ---
 
 ## Tech Stack

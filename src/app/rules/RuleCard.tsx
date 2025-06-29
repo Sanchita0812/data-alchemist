@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 interface RuleCardProps {
   rule: Rule;
   onDelete: () => void;
-  onUpdate: (updated: Rule) => void; // ✅ for updating rule data
+  onUpdate: (updated: Rule) => void; 
 }
 
 const RuleCard: React.FC<RuleCardProps> = ({ rule, onDelete, onUpdate }) => {

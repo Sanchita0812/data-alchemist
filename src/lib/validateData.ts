@@ -5,7 +5,7 @@ export interface ValidationError {
     message: string;
   }
   
-  // ✅ Safe JSON check
+  //Safe JSON check
   function isJSON(str: string): boolean {
     try {
       JSON.parse(str);
@@ -15,7 +15,7 @@ export interface ValidationError {
     }
   }
   
-  // ✅ Normalize PreferredPhases field
+  //Normalize PreferredPhases field
   function normalizePreferredPhases(value: string): number[] | null {
     if (!value) return null;
   
@@ -39,7 +39,7 @@ export interface ValidationError {
     return null;
   }
   
-  // ✅ CLIENT VALIDATION
+  //CLIENT VALIDATION
   export function validateClients(clients: any[], allTaskIDs: Set<string>): ValidationError[] {
     const errors: ValidationError[] = [];
     const seenClientIDs = new Set();
@@ -69,7 +69,7 @@ export interface ValidationError {
     return errors;
   }
   
-  // ✅ TASK VALIDATION
+  //TASK VALIDATION
   export function validateTasks(tasks: any[], allWorkerSkills: Set<string>): ValidationError[] {
     const errors: ValidationError[] = [];
   
@@ -112,7 +112,7 @@ export interface ValidationError {
     return errors;
   }
   
-  // ✅ WORKER VALIDATION
+  // WORKER VALIDATION
   export function validateWorkers(workers: any[]): ValidationError[] {
     const errors: ValidationError[] = [];
   

@@ -60,6 +60,16 @@ function validateCoRun(rule: CoRunRule, tasks: any[]): RuleViolation[] {
 // 2. Slot Restriction Rule: Check if all clients in a group have at least `minCommonSlots` in common
 function validateSlotRestriction(rule: SlotRestrictionRule, clients: any[]): RuleViolation[] {
   const groupClients = clients.filter((c) => c.GroupTag === rule.groupTag);
+  if (groupClients.length === 0) {
+    return [
+      {
+        id: rule.id,
+        type: "slotRestriction",
+        message: `No clients found with groupTag '${rule.groupTag}'.`,
+      },
+    ];
+  }
+
   const slotsLists = groupClients.map((c) => {
     try {
       return JSON.parse(c.AvailableSlots);
@@ -68,8 +78,21 @@ function validateSlotRestriction(rule: SlotRestrictionRule, clients: any[]): Rul
     }
   });
 
-  const commonSlots = slotsLists.reduce((acc, slots) =>
-    acc.filter((s: number) => slots.includes(s))
+  // Safely reduce only if we have valid slot arrays
+  const validSlots = slotsLists.filter((s) => Array.isArray(s) && s.length > 0);
+  if (validSlots.length === 0) {
+    return [
+      {
+        id: rule.id,
+        type: "slotRestriction",
+        message: `Clients in group '${rule.groupTag}' have no valid AvailableSlots.`,
+      },
+    ];
+  }
+
+  const commonSlots = validSlots.reduce(
+    (acc, slots) => acc.filter((s: number) => slots.includes(s)),
+    validSlots[0]
   );
 
   if (commonSlots.length < rule.minCommonSlots) {

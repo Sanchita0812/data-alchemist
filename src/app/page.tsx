@@ -1,11 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import FileUploader from "@/components/FileUpload/FileUploader";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import DataGrid from "@/components/ui/DataGrid";
+import {
+  validateClients,
+  validateWorkers,
+  validateTasks,
+  ValidationError,
+} from "@/lib/validateData";
 
 export default function UploadPage() {
   const [parsedData, setParsedData] = useState<{
@@ -18,13 +24,39 @@ export default function UploadPage() {
     tasks: [],
   });
 
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+
+  // Run validation whenever parsedData changes
+  useEffect(() => {
+    if (
+      parsedData.clients.length &&
+      parsedData.workers.length &&
+      parsedData.tasks.length
+    ) {
+      const allTaskIDs = new Set(parsedData.tasks.map((t) => t.TaskID));
+      const allWorkerSkills = new Set(
+        parsedData.workers.flatMap((w) =>
+          String(w.Skills || "")
+            .split(",")
+            .map((s) => s.trim().toLowerCase())
+        )
+      );
+
+      const clientErrors = validateClients(parsedData.clients, allTaskIDs);
+      const taskErrors = validateTasks(parsedData.tasks, allWorkerSkills);
+      const workerErrors = validateWorkers(parsedData.workers);
+
+      setValidationErrors([...clientErrors, ...taskErrors, ...workerErrors]);
+      console.log("✅ Validation complete");
+    }
+  }, [parsedData]);
+
   const handleAllSheetsParsed = (data: {
     clients: any[];
     workers: any[];
     tasks: any[];
   }) => {
     setParsedData(data);
-    console.log("✅ Parsed all sheets:", data);
   };
 
   const updateEntity = (type: "clients" | "workers" | "tasks", updated: any[]) => {
@@ -46,11 +78,27 @@ export default function UploadPage() {
         <CardContent className="p-4">
           <h2 className="text-lg font-medium mb-2">Upload File</h2>
           <FileUploader onDataParsed={handleAllSheetsParsed} />
-
         </CardContent>
       </Card>
 
       <Separator className="my-8" />
+
+      {/* Validation Errors Summary */}
+      {!!validationErrors.length && (
+        <div className="bg-red-100 border border-red-300 p-4 rounded-md my-6">
+          <h3 className="text-lg font-semibold text-red-700 mb-2">
+            ❌ Validation Errors ({validationErrors.length})
+          </h3>
+          <ul className="list-disc pl-5 space-y-1 text-sm text-red-800">
+            {validationErrors.map((error, idx) => (
+              <li key={idx}>
+                <strong>{error.entity}</strong> (row {error.rowIndex + 1}) -{" "}
+                <strong>{error.field}</strong>: {error.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Clients Grid */}
       {!!parsedData.clients.length && (
@@ -94,10 +142,11 @@ export default function UploadPage() {
           disabled={
             !parsedData.clients.length ||
             !parsedData.workers.length ||
-            !parsedData.tasks.length
+            !parsedData.tasks.length ||
+            validationErrors.length > 0
           }
         >
-          Proceed to Validation
+          Proceed to Next Step
         </Button>
       </div>
     </div>

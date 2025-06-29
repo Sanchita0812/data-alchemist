@@ -188,7 +188,7 @@ export default function UploadPage() {
               Upload Your Data
             </CardTitle>
             <p className="text-muted-foreground">
-              Upload a single Excel file (.xlsx) containing Clients, Workers, and Tasks sheets
+              Upload a single Excel file (.xlsx) or a Comma Separated Values file (.csv) containing Clients, Workers, and Tasks sheets
             </p>
           </CardHeader>
           <CardContent>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Rule } from "@/types/rule";
+import { Rule, CoRunRule, SlotRestrictionRule, LoadLimitRule } from "@/types/rule";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -105,18 +105,18 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule, onDelete, onUpdate }) => {
             <Label>Task IDs</Label>
             {isEditing ? (
               <Input
-                value={editedRule.tasks.join(", ")}
+                value={(editedRule as CoRunRule).tasks.join(", ")}
                 onChange={(e) =>
                   setEditedRule({
                     ...editedRule,
                     tasks: e.target.value.split(",").map((id) => id.trim()).filter(Boolean)
-                  })
+                  } as CoRunRule)
                 }
                 placeholder="e.g. T1, T2, T3"
               />
             ) : (
               <div className="flex flex-wrap gap-1">
-                {rule.tasks.map((taskId) => (
+                {(rule as CoRunRule).tasks.map((taskId) => (
                   <Badge key={taskId} variant="outline">
                     {taskId}
                   </Badge>
@@ -137,14 +137,14 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule, onDelete, onUpdate }) => {
               <Label>Group Tag</Label>
               {isEditing ? (
                 <Input
-                  value={editedRule.groupTag}
+                  value={(editedRule as SlotRestrictionRule).groupTag}
                   onChange={(e) =>
-                    setEditedRule({ ...editedRule, groupTag: e.target.value })
+                    setEditedRule({ ...editedRule, groupTag: e.target.value } as SlotRestrictionRule)
                   }
                 />
               ) : (
                 <Badge variant="outline" className="w-fit">
-                  {rule.groupTag}
+                  {(rule as SlotRestrictionRule).groupTag}
                 </Badge>
               )}
             </div>
@@ -154,21 +154,21 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule, onDelete, onUpdate }) => {
                 <Input
                   type="number"
                   min={1}
-                  value={editedRule.minCommonSlots}
+                  value={(editedRule as SlotRestrictionRule).minCommonSlots}
                   onChange={(e) =>
-                    setEditedRule({ ...editedRule, minCommonSlots: Number(e.target.value) })
+                    setEditedRule({ ...editedRule, minCommonSlots: Number(e.target.value) } as SlotRestrictionRule)
                   }
                 />
               ) : (
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary">{rule.minCommonSlots}</Badge>
+                  <Badge variant="secondary">{(rule as SlotRestrictionRule).minCommonSlots}</Badge>
                   <span className="text-sm text-muted-foreground">slots required</span>
                 </div>
               )}
             </div>
             {!isEditing && (
               <p className="text-sm text-muted-foreground">
-                All clients in "{rule.groupTag}" must share at least {rule.minCommonSlots} common time slots
+                All clients in "{(rule as SlotRestrictionRule).groupTag}" must share at least {(rule as SlotRestrictionRule).minCommonSlots} common time slots
               </p>
             )}
           </div>
@@ -180,14 +180,14 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule, onDelete, onUpdate }) => {
               <Label>Worker Group</Label>
               {isEditing ? (
                 <Input
-                  value={editedRule.workerGroup}
+                  value={(editedRule as LoadLimitRule).workerGroup}
                   onChange={(e) =>
-                    setEditedRule({ ...editedRule, workerGroup: e.target.value })
+                    setEditedRule({ ...editedRule, workerGroup: e.target.value } as LoadLimitRule)
                   }
                 />
               ) : (
                 <Badge variant="outline" className="w-fit">
-                  {rule.workerGroup}
+                  {(rule as LoadLimitRule).workerGroup}
                 </Badge>
               )}
             </div>
@@ -197,21 +197,21 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule, onDelete, onUpdate }) => {
                 <Input
                   type="number"
                   min={1}
-                  value={editedRule.maxSlotsPerPhase}
+                  value={(editedRule as LoadLimitRule).maxSlotsPerPhase}
                   onChange={(e) =>
-                    setEditedRule({ ...editedRule, maxSlotsPerPhase: Number(e.target.value) })
+                    setEditedRule({ ...editedRule, maxSlotsPerPhase: Number(e.target.value) } as LoadLimitRule)
                   }
                 />
               ) : (
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary">{rule.maxSlotsPerPhase}</Badge>
+                  <Badge variant="secondary">{(rule as LoadLimitRule).maxSlotsPerPhase}</Badge>
                   <span className="text-sm text-muted-foreground">max slots</span>
                 </div>
               )}
             </div>
             {!isEditing && (
               <p className="text-sm text-muted-foreground">
-                Workers in "{rule.workerGroup}" cannot exceed {rule.maxSlotsPerPhase} slots per phase
+                Workers in "{(rule as LoadLimitRule).workerGroup}" cannot exceed {(rule as LoadLimitRule).maxSlotsPerPhase} slots per phase
               </p>
             )}
           </div>

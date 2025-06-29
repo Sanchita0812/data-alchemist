@@ -69,7 +69,7 @@ import {
     // Check if tasks have compatible preferred phases
     const phaseSets = selectedTasks.map((t) => {
       const phases = normalizePhases(t.PreferredPhases);
-      return phases.sort((a, b) => a - b);
+      return phases.sort((a: number, b: number) => a - b);
     });
 
     // Check for phase compatibility (tasks should have overlapping phases)
@@ -214,7 +214,7 @@ import {
   
   // 🧠 Helper Functions
   function normalizePhases(phases: any): number[] {
-    if (Array.isArray(phases)) return phases.map(Number).filter(n => !isNaN(n));
+    if (Array.isArray(phases)) return phases.map((n: any) => Number(n)).filter((n: number) => !isNaN(n));
     
     if (typeof phases === "string") {
       try {
@@ -228,14 +228,14 @@ import {
 
         // Handle JSON array format like "[1,2,3]"
         if (phases.startsWith("[")) {
-          return JSON.parse(phases).map(Number).filter(n => !isNaN(n));
+          return JSON.parse(phases).map((n: any) => Number(n)).filter((n: number) => !isNaN(n));
         }
 
         // Handle comma-separated format like "1,2,3"
         return phases
           .split(",")
           .map(s => parseInt(s.trim(), 10))
-          .filter(n => !isNaN(n));
+          .filter((n: number) => !isNaN(n));
       } catch {
         return [];
       }
@@ -245,11 +245,11 @@ import {
   }
 
   function normalizeSlots(slots: any): number[] {
-    if (Array.isArray(slots)) return slots.map(Number).filter(n => !isNaN(n));
+    if (Array.isArray(slots)) return slots.map((n: any) => Number(n)).filter((n: number) => !isNaN(n));
     
     if (typeof slots === "string") {
       try {
-        return JSON.parse(slots).map(Number).filter(n => !isNaN(n));
+        return JSON.parse(slots).map((n: any) => Number(n)).filter((n: number) => !isNaN(n));
       } catch {
         return [];
       }

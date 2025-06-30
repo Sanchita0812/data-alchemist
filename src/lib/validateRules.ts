@@ -43,7 +43,7 @@ import {
     return violations;
   }
   
-  // ✅ Validate CoRun Rule
+  // Validate CoRun Rule
   function validateCoRun(rule: CoRunRule, tasks: any[]): RuleViolation[] {
     if (!rule.tasks || rule.tasks.length < 2) {
       return [{
@@ -93,7 +93,7 @@ import {
     return [];
   }
   
-  // ✅ Validate Slot Restriction
+  // Validate Slot Restriction
   function validateSlotRestriction(rule: SlotRestrictionRule, clients: any[]): RuleViolation[] {
     if (!rule.groupTag || !rule.minCommonSlots || rule.minCommonSlots < 1) {
       return [{
@@ -169,7 +169,7 @@ import {
     return [];
   }
   
-  // ✅ Validate Load Limit
+  // Validate Load Limit
   function validateLoadLimit(rule: LoadLimitRule, workers: any[]): RuleViolation[] {
     if (!rule.workerGroup || !rule.maxSlotsPerPhase || rule.maxSlotsPerPhase < 1) {
       return [{
@@ -212,7 +212,7 @@ import {
     return [];
   }
   
-  // 🧠 Helper Functions
+  // Helper Functions
   function normalizePhases(phases: any): number[] {
     if (Array.isArray(phases)) return phases.map((n: any) => Number(n)).filter((n: number) => !isNaN(n));
     

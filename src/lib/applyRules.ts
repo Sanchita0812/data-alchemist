@@ -36,7 +36,7 @@ import {
     });
   }
   
-  // ✅ CoRun Rule
+  // CoRun Rule
   function checkCoRunRule(rule: CoRunRule, tasks: any[]): ApplyRuleResult {
     const taskMap = new Map(tasks.map((t) => [t.TaskID, t]));
     const missing = rule.tasks.filter((id) => !taskMap.has(id));
@@ -74,7 +74,7 @@ import {
     };
   }
   
-  // ✅ Slot Restriction Rule (FIXED reduce crash)
+  // Slot Restriction Rule 
   function checkSlotRestrictionRule(rule: SlotRestrictionRule, clients: any[]): ApplyRuleResult {
     const groupClients = clients.filter((c) => c.GroupTag === rule.groupTag);
     const allSlots = groupClients.map((c) => normalizePhases(c.AvailableSlots || []));
@@ -89,7 +89,7 @@ import {
   
     const common = allSlots.reduce(
       (acc, slots) => acc.filter((s) => slots.includes(s)),
-      allSlots[0] ?? [] // ✅ Safe fallback
+      allSlots[0] ?? [] 
     );
   
     return {
@@ -101,7 +101,7 @@ import {
     };
   }
   
-  // ✅ Load Limit Rule
+  // Load Limit Rule
   function checkLoadLimitRule(rule: LoadLimitRule, workers: any[]): ApplyRuleResult {
     const groupWorkers = workers.filter((w) => w.WorkerGroup === rule.workerGroup);
   
@@ -122,7 +122,7 @@ import {
     };
   }
   
-  // ✅ Normalizer
+  // Normalizer
   function normalizePhases(phases: any): number[] {
     if (Array.isArray(phases)) return phases.map(Number);
   

@@ -15,13 +15,13 @@ export function generateRuleRecommendations(data: {
 }): RuleRecommendation[] {
   const recommendations: RuleRecommendation[] = [];
 
-  // 1. Co-Run Rule Recommendations
+  // Co-Run Rule Recommendations
   recommendations.push(...findCoRunOpportunities(data.tasks));
 
-  // 2. Load Limit Recommendations
+  // Load Limit Recommendations
   recommendations.push(...findLoadLimitOpportunities(data.workers));
 
-  // 3. Slot Restriction Recommendations
+  // Slot Restriction Recommendations
   recommendations.push(...findSlotRestrictionOpportunities(data.clients));
 
   return recommendations.sort((a, b) => b.confidence - a.confidence);

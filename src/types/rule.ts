@@ -1,4 +1,4 @@
-// src/types/rule.ts
+
 export type RuleType = "coRun" | "slotRestriction" | "loadLimit";
 
 export interface BaseRule {

@@ -1,4 +1,4 @@
-// src/lib/exportToExcel.ts
+
 import * as XLSX from "xlsx";
 
 export function exportEntitiesToExcel(entities: {

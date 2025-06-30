@@ -43,7 +43,7 @@
 
 ### Future Scope
 - Data Visualisation Possibilities
-- Better, Cleaner UI
+- Better, Cleaner UI: Moving away from Shadcn
 ---
 
 ## Tech Stack
